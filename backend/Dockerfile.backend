@@ -1,0 +1,20 @@
+FROM node:16
+
+# Устанавливаем Python и зависимости
+RUN apt-get update && apt-get install -y python3 python3-pip
+RUN pip3 install pandas scikit-learn numpy
+
+WORKDIR /usr/src/app
+
+COPY backend/package*.json ./
+RUN npm install
+
+COPY backend/ ./
+COPY .env ./
+
+# Копируем Python скрипты
+RUN mkdir -p python_scripts
+COPY backend/python_scripts ./python_scripts
+
+EXPOSE 5000
+CMD ["node", "src/index.js"]
