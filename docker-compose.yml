@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   etcd:
-    image: quay.io/coreos/etcd
+    image: gcr.io/etcd-development/etcd:v3.5.9
     environment:
       ETCDCTL_API: "3"
       ETCD_NAME: "etcd0"
@@ -12,7 +12,7 @@ services:
       - db-cluster
 
   patroni1:
-    image: zalando/patroni
+    image: ghcr.io/zalando/patroni:v2.1.2
     environment:
       PATRONI_NAME: "postgres1"
       PATRONI_POSTGRESQL_DATA_DIR: "/var/lib/postgresql/data/pgdata"
@@ -26,7 +26,7 @@ services:
       - db-cluster
 
   patroni2:
-    image: zalando/patroni
+    image: ghcr.io/zalando/patroni:v2.1.2
     environment:
       PATRONI_NAME: "postgres2"
       PATRONI_POSTGRESQL_DATA_DIR: "/var/lib/postgresql/data/pgdata"
