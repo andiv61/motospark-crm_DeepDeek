@@ -1,57 +1,52 @@
-version: '3.8'
-
 services:
   etcd:
-    image: gcr.io/etcd-development/etcd:v3.5.9
+    image: bitnami/etcd:latest
     environment:
-      ETCDCTL_API: "3"
-      ETCD_NAME: "etcd0"
-      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
-      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
-    networks:
-      - db-cluster
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - etcd_data:/bitnami/etcd
 
   patroni1:
-    image: ghcr.io/zalando/patroni:v2.1.2
+    image: docker.io/zalando/spilo-16:3.0-p1
     environment:
-      PATRONI_NAME: "postgres1"
-      PATRONI_POSTGRESQL_DATA_DIR: "/var/lib/postgresql/data/pgdata"
-      PATRONI_POSTGRESQL_CONNECT_ADDRESS: "patroni1:5432"
-      PATRONI_ETCD_URL: "http://etcd:2379"
-      PATRONI_REPLICATION_USERNAME: "replicator"
-      PATRONI_REPLICATION_PASSWORD: "secret"
+      - SCOPE=cluster
+      - ETCD_ENDPOINTS=http://etcd:2379
+      - PG_LISTEN=0.0.0.0:5432
     volumes:
-      - pgdata1:/var/lib/postgresql/data
-    networks:
-      - db-cluster
+      - patroni1_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    depends_on:
+      - etcd
 
   patroni2:
-    image: ghcr.io/zalando/patroni:v2.1.2
+    image: docker.io/zalando/spilo-16:3.0-p1
     environment:
-      PATRONI_NAME: "postgres2"
-      PATRONI_POSTGRESQL_DATA_DIR: "/var/lib/postgresql/data/pgdata"
-      PATRONI_POSTGRESQL_CONNECT_ADDRESS: "patroni2:5432"
-      PATRONI_ETCD_URL: "http://etcd:2379"
-      PATRONI_REPLICATION_USERNAME: "replicator"
-      PATRONI_REPLICATION_PASSWORD: "secret"
+      - SCOPE=cluster
+      - ETCD_ENDPOINTS=http://etcd:2379
+      - PG_LISTEN=0.0.0.0:5433
     volumes:
-      - pgdata2:/var/lib/postgresql/data
-    networks:
-      - db-cluster
+      - patroni2_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5433"
+    depends_on:
+      - etcd
 
   haproxy:
-    image: haproxy
+    image: haproxy:2.8
     ports:
-      - "5432:5432"  # PostgreSQL
-      - "8008:8008"  # Patroni API
+      - "7000:7000"
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-    networks:
-      - db-cluster
-
-networks:
-  db-cluster:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - patroni1
+      - patroni2
 
 volumes:
-  pgdata1:
-  pgdata2:
+  etcd_data:
+  patroni1_data:
+  patroni2_data:
