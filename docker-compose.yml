@@ -1,32 +1,32 @@
 services:
-  etcd:
-    image: bitnami/etcd:3.5
-    environment:
-      - ALLOW_NONE_AUTHENTICATION=yes
-    ports:
-      - "2379:2379"
-    volumes:
-      - etcd_data:/bitnami/etcd
-
   postgres1:
     image: postgres:16
-    environment:
-      - POSTGRES_PASSWORD=postgres
-    volumes:
-      - pg1_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg1_data:/var/lib/postgresql/data
 
   postgres2:
     image: postgres:16
+    ports:
+      - "5434:5432"
     environment:
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - pg2_data:/var/lib/postgresql/data
-    ports:
-      - "5434:5433"
 
-volumes:
-  etcd_data:
+  etcd:
+    image: bitnami/etcd:3.5
+    ports:
+      - "2379:2379"
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+    volumes:
+      - etcd_data:/bitnami/etcd
+
+volumes:  # 👇 Исправленная секция (mapping, а не список)
   pg1_data:
   pg2_data:
+  etcd_data:
