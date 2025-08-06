@@ -1,52 +1,32 @@
 services:
   etcd:
-    image: bitnami/etcd:latest
+    image: bitnami/etcd:3.5
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
     ports:
       - "2379:2379"
-      - "2380:2380"
     volumes:
       - etcd_data:/bitnami/etcd
 
-  patroni1:
-    image: docker.io/zalando/spilo-16:3.0-p1
+  postgres1:
+    image: postgres:16
     environment:
-      - SCOPE=cluster
-      - ETCD_ENDPOINTS=http://etcd:2379
-      - PG_LISTEN=0.0.0.0:5432
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - patroni1_data:/var/lib/postgresql/data
+      - pg1_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-    depends_on:
-      - etcd
+      - "5433:5432"
 
-  patroni2:
-    image: docker.io/zalando/spilo-16:3.0-p1
+  postgres2:
+    image: postgres:16
     environment:
-      - SCOPE=cluster
-      - ETCD_ENDPOINTS=http://etcd:2379
-      - PG_LISTEN=0.0.0.0:5433
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - patroni2_data:/var/lib/postgresql/data
+      - pg2_data:/var/lib/postgresql/data
     ports:
-      - "5433:5433"
-    depends_on:
-      - etcd
-
-  haproxy:
-    image: haproxy:2.8
-    ports:
-      - "7000:7000"
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    depends_on:
-      - patroni1
-      - patroni2
+      - "5434:5433"
 
 volumes:
   etcd_data:
-  patroni1_data:
-  patroni2_data:
+  pg1_data:
+  pg2_data:
